@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import "./index.css";
+
 
 const LOGO_SRC = "https://www.jobskillshare.org/wp-content/uploads/LOGO.png";
 
@@ -1797,8 +1797,8 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-function ChatWidget() {
-  const [open, setOpen] = useState(false);
+export function ChatWidget() {
+  const [open, setOpen] = useState(true);
   const [bubbleClosed, setBubbleClosed] = useState(false);
   const [view, setView] = useState<ChatView>("home");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -2179,7 +2179,7 @@ function ChatWidget() {
 }
 
 /* ================= LOGIN MODAL ================= */
-function LoginModal({
+export function LoginModal({
   isOpen,
   onClose,
   onSwitchToSignup,
@@ -2428,7 +2428,7 @@ function advisoryTextFor(tag: string): string {
   }
 }
 
-function CreateAccountModal({
+export function CreateAccountModal({
   isOpen,
   onClose,
   onSwitchToLogin,
