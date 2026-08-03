@@ -2439,7 +2439,7 @@ export function CreateAccountModal({
   onSwitchToLogin: () => void;
   onGoPrograms: (scrollToCourses?: boolean) => void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3>(3);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>(planOptions[0]);
   const [showPassword, setShowPassword] = useState(false);
   const [regName, setRegName] = useState("");
