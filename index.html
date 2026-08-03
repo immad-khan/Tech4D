@@ -13,6 +13,7 @@
   
 
 
+
 <div id="modals-container">
   <div id="login-modal-wrapper" style="display: none;">
     <div class="modal-overlay"><div class="modal-dialog modal-login"><button class="modal-close-btn" aria-label="Close modal">✕</button><div class="modal-eyebrow">WELCOME BACK</div><h2 class="modal-title">Continue your learning</h2><p class="modal-subtitle">Log in here and return directly to your learning portal.</p><form><div class="form-group"><label>Email or username</label><input type="text" class="form-input" placeholder="" required=""/></div><div class="form-group"><label>Password</label><input type="password" class="form-input" placeholder="" required=""/></div><label class="checkbox-row"><input type="checkbox" checked=""/><span>Keep me logged in</span></label><button type="submit" class="btn btn-primary btn-large btn-block">Log In &amp; Continue</button></form><div class="modal-links"><a href="#reset">Forgot your password?</a><a href="#helper">Need help choosing? Open Course Helper</a></div><div class="new-account-box"><h5>New to JobSkillShare?</h5><button>Create a free or Premium account →</button></div><div class="reset-password-section" id="reset-section"><p>Enter your email or username and we will send password-reset instructions.</p><div class="form-group"><label>Email or username</label><input type="text" class="form-input" value=""/></div><button type="button" class="btn btn-primary btn-large btn-block">Send Reset Email</button><div style="text-align:center;margin-top:14px"><a href="#login-top" style="color:var(--blue);font-size:13px;font-weight:600;text-decoration:underline">Back to login</a></div></div></div></div>
@@ -27,75 +28,147 @@
 
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const loginWrapper = document.getElementById('login-modal-wrapper');
-    const createAccountWrapper = document.getElementById('create-account-modal-wrapper');
-    
-    // Auth modals toggle
-    document.querySelectorAll('button').forEach(btn => {
-      const text = btn.textContent.trim();
-      if (text === 'Log In' || text.includes('Already a member')) {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          loginWrapper.style.display = 'block';
-        });
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    var loginWrapper = document.getElementById('login-modal-wrapper');
+    var createAccountWrapper = document.getElementById('create-account-modal-wrapper');
+    var chatWrapper = document.getElementById('chat-widget-wrapper');
+
+    /* ─── HELPER: open / close modals ─── */
+    function openLogin() { loginWrapper.style.display = 'block'; document.body.style.overflow = 'hidden'; }
+    function openCreateAccount() { createAccountWrapper.style.display = 'block'; document.body.style.overflow = 'hidden'; }
+    function closeAll() {
+      loginWrapper.style.display = 'none';
+      createAccountWrapper.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    /* ─── Wire ALL Log In buttons ─── */
+    document.querySelectorAll('button').forEach(function(btn) {
+      var t = btn.textContent.trim();
+      if (t === 'Log In' || t === 'Already a member? Log In' || t === 'Open My Learning') {
+        btn.addEventListener('click', function(e) { e.preventDefault(); openLogin(); });
       }
-      if (text === 'Create Account' || text.includes('Create Free Account') || text.includes('Create a free')) {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          createAccountWrapper.style.display = 'block';
-        });
+      if (
+        t === 'Create Account' ||
+        t === 'Create Free Account' ||
+        t === 'Explore Membership Options' ||
+        t === 'Choose Premium Monthly' ||
+        t === 'Choose Premium Yearly' ||
+        t === 'Explore Certificate Programs' ||
+        t === 'Browse Individual Courses'
+      ) {
+        btn.addEventListener('click', function(e) { e.preventDefault(); openCreateAccount(); });
       }
     });
 
-    document.querySelectorAll('.modal-close-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        loginWrapper.style.display = 'none';
-        createAccountWrapper.style.display = 'none';
-      });
-    });
-    
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          loginWrapper.style.display = 'none';
-          createAccountWrapper.style.display = 'none';
-        }
+    /* ─── Modal overlay click-outside-to-close ─── */
+    [loginWrapper, createAccountWrapper].forEach(function(wrapper) {
+      if (!wrapper) return;
+      wrapper.addEventListener('click', function(e) {
+        if (e.target === wrapper || e.target.classList.contains('modal-overlay')) closeAll();
       });
     });
 
-    // Chat widget toggle
-    // original chat (closed state) is directly in body/root
-    const originalChat = document.querySelector('#root > .chat-widget') || Array.from(document.querySelectorAll('.chat-widget')).find(el => !el.closest('#chat-widget-wrapper'));
-    const openChatWrapper = document.getElementById('chat-widget-wrapper');
-    
-    if (originalChat && openChatWrapper) {
-      const openBtn = originalChat.querySelector('.chat-btn');
+    /* ─── Close buttons (✕) inside modals ─── */
+    document.querySelectorAll('.modal-close-btn').forEach(function(btn) {
+      btn.addEventListener('click', closeAll);
+    });
+
+    /* ─── Switch links inside modals ─── */
+    var switchToSignupBtn = loginWrapper ? loginWrapper.querySelector('.new-account-box button') : null;
+    if (switchToSignupBtn) {
+      switchToSignupBtn.addEventListener('click', function() { closeAll(); openCreateAccount(); });
+    }
+
+    /* ─── Escape key closes modals ─── */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeAll();
+    });
+
+    /* ─── CHAT WIDGET ─── */
+    // The closed/bubble state is the .chat-widget rendered in the page body
+    // The open panel state is inside #chat-widget-wrapper
+    var allChatWidgets = document.querySelectorAll('.chat-widget');
+    var closedChatWidget = null;
+    allChatWidgets.forEach(function(w) {
+      if (!w.closest('#chat-widget-wrapper')) closedChatWidget = w;
+    });
+
+    if (closedChatWidget) {
+      var openBtn = closedChatWidget.querySelector('.chat-btn');
+      var bubble = closedChatWidget.querySelector('.chat-bubble');
+      var closeX = bubble ? bubble.querySelector('.close') : null;
+
       if (openBtn) {
-        openBtn.addEventListener('click', () => {
-          originalChat.style.display = 'none';
-          openChatWrapper.style.display = 'block';
+        openBtn.addEventListener('click', function() {
+          closedChatWidget.style.display = 'none';
+          chatWrapper.style.display = 'block';
         });
       }
-      
-      const closeBtn = openChatWrapper.querySelector('.chat-btn');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-          openChatWrapper.style.display = 'none';
-          originalChat.style.display = 'block';
-        });
-      }
-      
-      // close bubble
-      const closeBubble = originalChat.querySelector('.chat-bubble .close');
-      if (closeBubble) {
-        closeBubble.addEventListener('click', (e) => {
+      if (closeX) {
+        closeX.addEventListener('click', function(e) {
           e.stopPropagation();
-          originalChat.querySelector('.chat-bubble').style.display = 'none';
+          if (bubble) bubble.style.display = 'none';
         });
       }
     }
+
+    if (chatWrapper) {
+      var minimizeBtn = chatWrapper.querySelector('.chat-btn');
+      if (minimizeBtn) {
+        minimizeBtn.addEventListener('click', function() {
+          chatWrapper.style.display = 'none';
+          if (closedChatWidget) closedChatWidget.style.display = 'block';
+        });
+      }
+
+      // Chat nav: home / messages view toggle
+      var chatPanel = chatWrapper.querySelector('.chat-panel');
+      var navBtns = chatWrapper.querySelectorAll('.chat-nav-btn');
+      navBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          navBtns.forEach(function(b) { b.classList.remove('active'); b.classList.add('dim'); });
+          btn.classList.remove('dim'); btn.classList.add('active');
+        });
+      });
+
+      // New Conversation button inside chat panel
+      var convCards = chatWrapper.querySelectorAll('.chat-conv-card');
+      convCards.forEach(function(card) {
+        card.addEventListener('click', function() {
+          // Show a simple input in the chat body
+          var body = chatWrapper.querySelector('.chat-body');
+          if (body) {
+            body.innerHTML = '<div class="chat-thread"><div class="chat-empty" style="padding:40px 20px">No messages yet — start the conversation below.</div></div>';
+            var inputBar = document.createElement('div');
+            inputBar.className = 'chat-input-bar';
+            inputBar.innerHTML = '<input placeholder="If our AI IT Assistant can\'t answer your question, leave a message with your email in this box." /><div class="chat-input-icons"><button aria-label="Rate"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.3a2 2 0 0 0 2-1.7l1.4-9a2 2 0 0 0-2-2.3z"></path><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button></div>';
+            chatPanel.appendChild(inputBar);
+            var inp = inputBar.querySelector('input');
+            inp.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter' && inp.value.trim()) {
+                var thread = body.querySelector('.chat-thread');
+                var msg = document.createElement('div');
+                msg.className = 'chat-msg user';
+                msg.textContent = inp.value.trim();
+                thread.appendChild(msg);
+                inp.value = '';
+                setTimeout(function() {
+                  var reply = document.createElement('div');
+                  reply.className = 'chat-msg bot';
+                  reply.textContent = 'Thanks for reaching out! Our AI IT Assistant is reviewing your question and will reply in a few minutes.';
+                  thread.appendChild(reply);
+                  thread.scrollTop = thread.scrollHeight;
+                }, 700);
+              }
+            });
+          }
+        });
+      });
+    }
   });
+})();
 </script>
 
 </body></html>
