@@ -2376,6 +2376,12 @@ const planOptions: PlanType[] = [
   },
 ];
 
+// Prototype affiliate configuration. Replace the local destination with the
+// approved production affiliate checkout URL before publishing live.
+const AFFILIATE_ID = "jss-week5-demo";
+const enrollmentUrlFor = (plan: PlanType) =>
+  `enrollment.html?plan=${encodeURIComponent(plan.name)}&aff=${encodeURIComponent(AFFILIATE_ID)}`;
+
 function FlowSteps({ current }: { current: 1 | 2 | 3 }) {
   const items = ["Choose a plan", "Secure checkout", "Start learning"];
   return (
@@ -2452,6 +2458,11 @@ export function CreateAccountModal({
   const handleSelectPlan = (plan: PlanType) => {
     setSelectedPlan(plan);
     setStep(2);
+    window.history.replaceState({}, "", `#membership?plan=${encodeURIComponent(plan.name)}&aff=${AFFILIATE_ID}`);
+  };
+
+  const handleEnrollment = () => {
+    window.location.assign(enrollmentUrlFor(selectedPlan));
   };
 
   const handleGetRecommendation = () => {
@@ -2516,6 +2527,12 @@ export function CreateAccountModal({
                 </span>
                 .
               </p>
+            </div>
+
+            <div className="membership-proof" aria-label="Membership trust signals">
+              <div><strong>60,000+</strong><span>members learning with JSS</span></div>
+              <div><strong>120+</strong><span>countries represented</span></div>
+              <div><strong>Secure</strong><span>Stripe-powered checkout</span></div>
             </div>
 
             <div className="plans-grid">
@@ -2603,13 +2620,13 @@ export function CreateAccountModal({
             .
           </p>
 
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={(e) => { e.preventDefault(); handleEnrollment(); }}>
             {/* Account Information Box */}
             <div className="form-box">
               <div className="form-box-title">Account Information</div>
 
               <div className="form-group">
-                <label>Username *</label>
+                <label>Full name *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -2617,25 +2634,6 @@ export function CreateAccountModal({
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
                 />
-              </div>
-
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label>Password *</label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    className="form-input"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Confirm Password *</label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    className="form-input"
-                    required
-                  />
-                </div>
               </div>
 
               <button
@@ -2652,8 +2650,12 @@ export function CreateAccountModal({
                   <input type="email" className="form-input" required />
                 </div>
                 <div className="form-group">
-                  <label>Confirm Email Address *</label>
-                  <input type="email" className="form-input" required />
+                  <label>Create password *</label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-input"
+                    required
+                  />
                 </div>
               </div>
 
@@ -2668,21 +2670,6 @@ export function CreateAccountModal({
                 >
                   Log in here
                 </button>
-              </div>
-            </div>
-
-            {/* Additional Details Box */}
-            <div className="form-box" style={{ marginTop: 20 }}>
-              <div className="form-box-title">Additional Details</div>
-
-              <div className="form-group">
-                <label>What are your career goals? *</label>
-                <input type="text" className="form-input" required />
-              </div>
-
-              <div className="form-group">
-                <label>How did you find out about jobskillshare.org? *</label>
-                <input type="text" className="form-input" required />
               </div>
             </div>
 
@@ -2738,9 +2725,8 @@ export function CreateAccountModal({
               type="submit"
               className="btn btn-primary btn-large btn-block"
               style={{ marginTop: 12 }}
-              onClick={() => setStep(3)}
             >
-              {selectedPlan.isPaid ? "Submit and Check Out" : "Submit and Confirm"}
+              {selectedPlan.isPaid ? "Continue to Secure Enrollment" : "Create Free Account"}
             </button>
           </form>
         </div>
