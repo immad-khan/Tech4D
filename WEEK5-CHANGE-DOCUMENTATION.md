@@ -22,3 +22,15 @@ This is a local prototype for review. The live JobSkillShare site was not access
 3. Complete the short required form; paid plans also show payment fields.
 4. Select the terms checkbox and submit.
 5. Confirm `enrollment.html` displays the selected plan and affiliate reference.
+
+## Clarification: visible Week 5 changes
+
+**Final scope:** count only three UI/UX improvements: trust signals, a shorter registration form, and explicit plan-value notes. The affiliate click-through is documented as a Thursday functional integration requirement, not as a UX redesign. The confirmation/welcome screen already existed and is not claimed as new work.
+
+The existing replica already had plan-card benefit lists and a yearly-plan badge. Those are not being claimed as new work. The new visible comparison elements are:
+
+- **What you get** above every benefit list.
+- **Monthly billing — cancel anytime** on Premium Monthly.
+- **$45.75/month, billed annually — save $51 each year** in blue on Premium Yearly.
+
+The affiliate hand-off is now visible in the form as **Selected plan** and **Enrollment tracking is ready**. The submit button also carries the plan and affiliate ID to the local enrollment page, where the values are displayed for review.

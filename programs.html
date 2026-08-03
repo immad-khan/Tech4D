@@ -21,6 +21,12 @@
     </svg>
   </button>
 </div>
+  <button class="chat-btn" aria-label="Open chat">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+  </button>
+</div>
 <style id="chat-bubble-style">
 #chat-bubble-widget { position: fixed; bottom: 24px; right: 24px; z-index: 9998; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 #chat-bubble-widget .chat-bubble { background: #fff; border-radius: 20px; padding: 8px 16px; box-shadow: 0 2px 12px rgba(0,0,0,.15); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #1e293b; }
@@ -61,6 +67,11 @@
     <div class="chat-widget"><div class="chat-panel"><div class="chat-body navy"><p class="chat-home-text">Issues related to lab content, guide, or devices are handled by practice lab support. Submit a ticket to the practice lab support from the lab portal.</p><button class="chat-conv-card"><span><span class="t">New Conversation</span><br/><span class="s">We typically reply in a few minutes</span></span><span class="send"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg></span></button></div><div class="chat-footer-nav"><button class="chat-nav-btn active" aria-label="Home"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V21h5v-6h4v6h5V9.5"></path></svg></button><button class="chat-nav-btn dim" aria-label="Messages"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></button></div></div><div class="tawk-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 14c0-5 4-9 9-9 3 0 6 2 7 5-2-1-4-1-6 0 3 0 5 2 5 5 0 3-3 5-7 5-5 0-8-3-8-6z" fill="#22a06b"></path><circle cx="15" cy="13" r="1.4" fill="#fff"></circle></svg>Powered by tawk.to</div><button class="chat-btn" aria-label="Minimize chat"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"></path></svg></button></div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth-common.js"></script>
+
 <script>
 (function() {
   document.addEventListener('DOMContentLoaded', function() {
@@ -120,7 +131,43 @@
     /* Step 2 -> Step 3 */
     if (caStep2Wrapper) {
       var submitBtn = caStep2Wrapper.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.addEventListener('click', function(e) { e.preventDefault(); showOnly(caStep3Wrapper); });
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var inputs = caStep2Wrapper.querySelectorAll('.form-input');
+          if (inputs.length < 5) return;
+          var fname = inputs[0].value.trim();
+          var lname = inputs[1].value.trim();
+          var email = inputs[2].value.trim();
+          var pass = inputs[3].value;
+          var passConf = inputs[4].value;
+          var chk = caStep2Wrapper.querySelector('input[type="checkbox"]');
+          if (!email || !pass || !chk || !chk.checked) {
+            alert('Please fill out all required fields and agree to the Terms.');
+            return;
+          }
+          if (pass !== passConf) {
+            alert('Passwords do not match.');
+            return;
+          }
+          var originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Creating Account...';
+          submitBtn.disabled = true;
+          window.getSupabase().auth.signUp({
+            email: email,
+            password: pass,
+            options: { data: { full_name: fname + ' ' + lname } }
+          }).then(function(res) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            if (res.error) alert(res.error.message);
+            else {
+              alert('Account created! Please check your email to verify if required.');
+              showOnly(caStep3Wrapper);
+            }
+          });
+        });
+      }
       var changePlanBtn = caStep2Wrapper.querySelector('.change-plan-btn');
       if (changePlanBtn) changePlanBtn.addEventListener('click', function(e) { e.preventDefault(); showOnly(caWrapper); });
       var closeBtn2 = caStep2Wrapper.querySelector('.modal-close-btn');
@@ -203,6 +250,29 @@
       loginWrapper.addEventListener('click', function(e) {
         if (e.target === loginWrapper || e.target.classList.contains('modal-overlay')) showOnly(null);
       });
+      var loginForm = loginWrapper.querySelector('form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var inputs = loginForm.querySelectorAll('input');
+          var email = inputs[0].value.trim();
+          var pass = inputs[1].value;
+          if (!email || !pass) return alert('Please enter both email and password.');
+          var btn = loginForm.querySelector('button[type="submit"]');
+          var originalText = btn.textContent;
+          btn.textContent = 'Logging in...';
+          btn.disabled = true;
+          window.getSupabase().auth.signInWithPassword({ email: email, password: pass }).then(function(res) {
+            btn.textContent = originalText;
+            btn.disabled = false;
+            if (res.error) alert(res.error.message);
+            else {
+              alert('Successfully logged in!');
+              showOnly(null);
+            }
+          });
+        });
+      }
       var switchToSignup = loginWrapper.querySelector('.new-account-box button');
       if (switchToSignup) switchToSignup.addEventListener('click', function() { showOnly(caWrapper); });
       var forgotLink = loginWrapper.querySelector('a[href="#reset"]');
@@ -218,7 +288,18 @@
       if (sendResetBtn) {
         sendResetBtn.addEventListener('click', function() {
           var inp = loginWrapper.querySelector('#reset-section input');
-          if (inp && inp.value.trim()) alert('Password reset link sent to ' + inp.value.trim() + ' if the account exists.');
+          if (inp && inp.value.trim()) {
+            var email = inp.value.trim();
+            var originalText = sendResetBtn.textContent;
+            sendResetBtn.textContent = 'Sending...';
+            sendResetBtn.disabled = true;
+            window.getSupabase().auth.resetPasswordForEmail(email).then(function(res) {
+              sendResetBtn.textContent = originalText;
+              sendResetBtn.disabled = false;
+              if (res.error) alert(res.error.message);
+              else alert('Password reset link sent to ' + email + ' if the account exists.');
+            });
+          }
           else alert('Please enter your email or username.');
         });
       }

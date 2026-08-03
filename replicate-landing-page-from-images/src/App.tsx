@@ -2548,7 +2548,15 @@ export function CreateAccountModal({
                     <span className="price">{plan.price}</span>
                     <span className="per">{plan.period}</span>
                   </div>
+                  <p className={`plan-value-note ${plan.badgeBlue ? "best-value-note" : ""}`}>
+                    {plan.name === "Premium Yearly"
+                      ? "$45.75/month, billed annually — save $51 each year"
+                      : plan.name === "Premium Monthly"
+                        ? "Monthly billing — cancel anytime"
+                        : "No payment method required"}
+                  </p>
                   <p className="p-desc">{plan.desc}</p>
+                  <div className="plan-benefits-label">What you get</div>
                   <ul>
                     {plan.features.map((f) => (
                       <li key={f.label} className={f.ai ? "ai-feat" : ""}>
@@ -2619,6 +2627,10 @@ export function CreateAccountModal({
             </span>
             .
           </p>
+          <div className="cta-handoff-note">
+            <span>Selected plan: <strong>{selectedPlan.name}</strong></span>
+            <span>Enrollment tracking is ready</span>
+          </div>
 
           <form onSubmit={(e) => { e.preventDefault(); handleEnrollment(); }}>
             {/* Account Information Box */}
@@ -2725,6 +2737,8 @@ export function CreateAccountModal({
               type="submit"
               className="btn btn-primary btn-large btn-block"
               style={{ marginTop: 12 }}
+              data-affiliate-id={AFFILIATE_ID}
+              data-selected-plan={selectedPlan.name}
             >
               {selectedPlan.isPaid ? "Continue to Secure Enrollment" : "Create Free Account"}
             </button>

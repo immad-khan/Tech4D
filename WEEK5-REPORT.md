@@ -40,3 +40,9 @@ Updated the existing replica’s membership modal rather than creating a separat
 ## Summary for review
 
 The old replica had a longer registration form, less prominent community trust evidence, and no measurable final enrollment hand-off. The updated version makes trust immediate, reduces unnecessary fields, keeps plan benefits clear, and adds a testable affiliate-aware CTA flow.
+
+## Clarification for review
+
+**Final scope:** report only three UI/UX improvements: trust signals, a shorter registration form, and explicit plan-value notes. The affiliate click-through is a Thursday functional integration requirement, not a claimed UX redesign. The confirmation/welcome screen already existed and is not counted as new work.
+
+The original replica already included plan-card benefits and a Best Value badge. The Week 5 visual comparison change is the new **What you get** label, the Monthly **cancel anytime** note, and the Yearly **$45.75/month / save $51 each year** note. The CTA change is visible in the registration form as the selected-plan/tracking-ready status and is verified at `enrollment.html`.

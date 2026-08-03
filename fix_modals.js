@@ -102,7 +102,43 @@ const script = `<script>
     /* Step 2 -> Step 3 */
     if (caStep2Wrapper) {
       var submitBtn = caStep2Wrapper.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.addEventListener('click', function(e) { e.preventDefault(); showOnly(caStep3Wrapper); });
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var inputs = caStep2Wrapper.querySelectorAll('.form-input');
+          if (inputs.length < 5) return;
+          var fname = inputs[0].value.trim();
+          var lname = inputs[1].value.trim();
+          var email = inputs[2].value.trim();
+          var pass = inputs[3].value;
+          var passConf = inputs[4].value;
+          var chk = caStep2Wrapper.querySelector('input[type="checkbox"]');
+          if (!email || !pass || !chk || !chk.checked) {
+            alert('Please fill out all required fields and agree to the Terms.');
+            return;
+          }
+          if (pass !== passConf) {
+            alert('Passwords do not match.');
+            return;
+          }
+          var originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Creating Account...';
+          submitBtn.disabled = true;
+          window.getSupabase().auth.signUp({
+            email: email,
+            password: pass,
+            options: { data: { full_name: fname + ' ' + lname } }
+          }).then(function(res) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            if (res.error) alert(res.error.message);
+            else {
+              alert('Account created! Please check your email to verify if required.');
+              showOnly(caStep3Wrapper);
+            }
+          });
+        });
+      }
       var changePlanBtn = caStep2Wrapper.querySelector('.change-plan-btn');
       if (changePlanBtn) changePlanBtn.addEventListener('click', function(e) { e.preventDefault(); showOnly(caWrapper); });
       var closeBtn2 = caStep2Wrapper.querySelector('.modal-close-btn');
@@ -185,6 +221,29 @@ const script = `<script>
       loginWrapper.addEventListener('click', function(e) {
         if (e.target === loginWrapper || e.target.classList.contains('modal-overlay')) showOnly(null);
       });
+      var loginForm = loginWrapper.querySelector('form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var inputs = loginForm.querySelectorAll('input');
+          var email = inputs[0].value.trim();
+          var pass = inputs[1].value;
+          if (!email || !pass) return alert('Please enter both email and password.');
+          var btn = loginForm.querySelector('button[type="submit"]');
+          var originalText = btn.textContent;
+          btn.textContent = 'Logging in...';
+          btn.disabled = true;
+          window.getSupabase().auth.signInWithPassword({ email: email, password: pass }).then(function(res) {
+            btn.textContent = originalText;
+            btn.disabled = false;
+            if (res.error) alert(res.error.message);
+            else {
+              alert('Successfully logged in!');
+              showOnly(null);
+            }
+          });
+        });
+      }
       var switchToSignup = loginWrapper.querySelector('.new-account-box button');
       if (switchToSignup) switchToSignup.addEventListener('click', function() { showOnly(caWrapper); });
       var forgotLink = loginWrapper.querySelector('a[href="#reset"]');
@@ -200,7 +259,18 @@ const script = `<script>
       if (sendResetBtn) {
         sendResetBtn.addEventListener('click', function() {
           var inp = loginWrapper.querySelector('#reset-section input');
-          if (inp && inp.value.trim()) alert('Password reset link sent to ' + inp.value.trim() + ' if the account exists.');
+          if (inp && inp.value.trim()) {
+            var email = inp.value.trim();
+            var originalText = sendResetBtn.textContent;
+            sendResetBtn.textContent = 'Sending...';
+            sendResetBtn.disabled = true;
+            window.getSupabase().auth.resetPasswordForEmail(email).then(function(res) {
+              sendResetBtn.textContent = originalText;
+              sendResetBtn.disabled = false;
+              if (res.error) alert(res.error.message);
+              else alert('Password reset link sent to ' + email + ' if the account exists.');
+            });
+          }
           else alert('Please enter your email or username.');
         });
       }
@@ -303,9 +373,19 @@ function fixHtml(file) {
   // Remove any leftover empty lines at end of body
   html = html.replace(/\s*<\/body><\/html>$/, '\n</body></html>');
 
+  // Remove old supabase scripts if present
+  html = html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2"><\/script>\s*\n/g, '');
+  html = html.replace(/<script src="supabase-config\.js"><\/script>\s*\n/g, '');
+  html = html.replace(/<script src="auth-common\.js"><\/script>\s*\n/g, '');
+
   // Inject before </body></html>
+  const supabaseScripts = `
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth-common.js"></script>
+`;
   html = html.replace('</body></html>',
-    chatBubbleCSS + '\n' + chatBubble + '\n' + modalsBlock + '\n' + script + '\n</body></html>');
+    chatBubbleCSS + '\n' + chatBubble + '\n' + modalsBlock + '\n' + supabaseScripts + '\n' + script + '\n</body></html>');
 
   fs.writeFileSync(file, html);
   console.log('Fixed: ' + file + ' (' + html.length + ' bytes)');

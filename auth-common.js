@@ -137,7 +137,7 @@
                 });
             });
         } else {
-            btn.href = 'login.html';
+            btn.href = '#login';
             var span = btn.querySelector('span');
             if (span) span.textContent = 'Login';
         }
